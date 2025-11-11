@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
+from django.utils import timezone
 
 from .models import Question, Choice
 
@@ -10,11 +11,13 @@ from .models import Question, Choice
 class IndexView(generic.ListView):
     template_name = "polls/index.html"
     # template인 index.html 로 넘겨줄 argument 명을 직접 정의
-    context_object_name = "lastest_question_list"
+    context_object_name = "latest_question_list"
 
     def get_queryset(self):
-        # lastest_question_list 로 전달할 value
-        return Question.objects.order_by("-pub_date")[:5]
+        # latest_question_list 로 전달할 value
+        return Question.objects.filter(
+            pub_date__lte=timezone.now()
+        ).order_by("-pub_date")[:5]
 
 
 class DetailView(generic.DetailView):
@@ -22,6 +25,9 @@ class DetailView(generic.DetailView):
     # template 명은 <app_name>/<model_name>_detail.html 로 자동으로 찾음
     # 이를 회피하기 위해 명시적으로 지정
     template_name = "polls/detail.html"
+
+    def get_queryset(self):
+        return Question.objects.filter(pub_date__lte=timezone.now())
 
 
 class ResultsView(generic.DetailView):
